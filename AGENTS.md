@@ -28,14 +28,21 @@ Ce dépôt est le blog **Carnet de bord du homelab** (Astro, site statique), pub
 
 ## Style
 
+**Le texte doit sonner comme Evann, pas comme une IA.** Avant de livrer, relis-toi avec le skill
+[`humanizer-fr`](./.agents/skills/humanizer-fr/SKILL.md) (adaptation française de Humanizer). Les textes d'Evann dans
+[`docs/voix/`](./docs/voix/) priment sur toutes les règles ci-dessous.
+
+
 - **Français**, ton direct et concret, à la première personne (« je ») : c'est le carnet d'Evann.
 - Les termes techniques restent en anglais quand c'est l'usage (pod, rollout, GitOps…).
-- Des **titres `##`** toutes les 3 à 6 paragraphes, et des paragraphes courts.
+- Des titres `##` qui disent ce que contient la section (pas de titre « pour l'effet »), et des paragraphes courts.
 - **Montre du vrai** : des extraits de manifests ou de config **réels et simplifiés**, toujours dans des blocs de code
   avec leur langage (` ```yaml `, ` ```bash `…).
 - Explique le **pourquoi** et les **compromis**, pas seulement le comment. Les échecs et les incidents sont les
   meilleurs sujets.
-- 800 à 1 800 mots. Pas de remplissage, pas de conclusion générique.
+- 800 à 1 800 mots. Pas d'introduction qui annonce le plan, pas de conclusion qui résume : on finit sur le dernier
+  fait concret.
+- Guillemets français « … » dans la prose. Pas de tiret cadratin pour les incises. Gras au plus une fois par section.
 
 ## Ce qu'on ne publie JAMAIS (relecture sécurité obligatoire)
 
