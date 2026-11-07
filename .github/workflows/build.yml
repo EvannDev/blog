@@ -45,14 +45,14 @@ jobs:
           docker buildx build --platform linux/amd64 --load -t blog:ci --cache-from type=gha .
           docker run -d --name blog --read-only --cap-drop ALL --security-opt no-new-privileges \
             --user 65532:65532 -p 8080:8080 blog:ci
-          for i in $(seq 1 20); do curl -fs http://localhost:8080/readyz >/dev/null && break; sleep 1; done
+          for i in $(seq 1 20); do curl -fs http://localhost:8080/health >/dev/null && break; sleep 1; done
 
           check() { code=$(curl -s -o /dev/null -w '%{http_code}' -X "${3:-GET}" "http://localhost:8080$1"); echo "${3:-GET} $1 -> $code (attendu $2)"; [ "$code" = "$2" ]; }
           check / 200
           check /blog/ 200
           check /rss.xml 200
           check /sitemap-index.xml 200
-          check /livez 200
+          check /health 200
           check /page-inexistante 404
           check /.git/config 404
           check /../../etc/passwd 404
