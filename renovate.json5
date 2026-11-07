@@ -1,7 +1,8 @@
 // Dépendances du blog (npm, image de base, actions GitHub).
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
-  extends: ['config:recommended', ':dependencyDashboard'],
+  // Actions GitHub et images de base épinglées par digest (chaîne d'approvisionnement)
+  extends: ['config:recommended', ':dependencyDashboard', 'helpers:pinGitHubActionDigests', 'docker:pinDigests'],
   timezone: 'Europe/Paris',
   schedule: ['* 6-12 * * 6'],
   minimumReleaseAge: '3 days',

@@ -1,6 +1,6 @@
-# Pull request : build du site (le frontmatter est validé) et de l'image, sans publication.
-# Merge sur main : image multi-arch publiée sur ghcr.io/evanndev/blog:1.0.<n> (+ sha-<commit>).
-# Renovate (dépôt platform) détecte le nouveau tag et met à jour le déploiement ; Argo CD l'applique.
+# Pull request : build du site (le frontmatter est validé) et de l'image, test de fumée durci, sans publication.
+# Merge sur main : image multi-arch publiée sur ghcr.io/evanndev/blog:1.0.<n> (+ sha-<commit>), avec provenance
+# SLSA et SBOM. Renovate (dépôt platform) détecte le nouveau tag et met à jour le déploiement ; Argo CD l'applique.
 name: build
 
 on:
@@ -23,6 +23,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
@@ -37,19 +39,37 @@ jobs:
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
-      - name: Test de fumée de l'image (amd64, lecture seule, non-root)
+      - name: Test de fumée (mêmes contraintes que dans Kubernetes)
         run: |
+          set -eu
           docker buildx build --platform linux/amd64 --load -t blog:ci --cache-from type=gha .
-          docker run -d --name blog --read-only --tmpfs /tmp -p 8080:8080 blog:ci
-          for i in $(seq 1 20); do curl -fs http://localhost:8080/healthz >/dev/null && break; sleep 1; done
-          check() { code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8080$1"); echo "$1 -> $code"; [ "$code" = "$2" ]; }
+          docker run -d --name blog --read-only --cap-drop ALL --security-opt no-new-privileges \
+            --user 65532:65532 -p 8080:8080 blog:ci
+          for i in $(seq 1 20); do curl -fs http://localhost:8080/readyz >/dev/null && break; sleep 1; done
+
+          check() { code=$(curl -s -o /dev/null -w '%{http_code}' -X "${3:-GET}" "http://localhost:8080$1"); echo "${3:-GET} $1 -> $code (attendu $2)"; [ "$code" = "$2" ]; }
           check / 200
           check /blog/ 200
           check /rss.xml 200
           check /sitemap-index.xml 200
+          check /livez 200
           check /page-inexistante 404
-          curl -sI http://localhost:8080/ | grep -qi '^content-security-policy:'
-          docker logs blog 2>&1 | (! grep -iE '\[(emerg|crit|alert)\]')
+          check /.git/config 404
+          check /../../etc/passwd 404
+          check / 405 POST
+          check / 405 DELETE
+
+          h=$(curl -sI http://localhost:8080/)
+          for header in content-security-policy strict-transport-security x-frame-options x-content-type-options referrer-policy; do
+            echo "$h" | grep -qi "^$header:" || { echo "en-tête manquant : $header"; exit 1; }
+          done
+          echo "$(curl -sI http://localhost:8080/page-inexistante)" | grep -qi '^content-security-policy:' || { echo "CSP absente sur la 404"; exit 1; }
+          asset=$(curl -s http://localhost:8080/ | grep -oE '/_astro/[^"]+\.(css|js|woff2?)' | head -1)
+          if [ -n "$asset" ]; then curl -sI "http://localhost:8080$asset" | grep -qi 'immutable' || { echo "asset sans cache immuable : $asset"; exit 1; }; fi
+
+          # L'image ne doit contenir ni shell ni outils
+          if docker run --rm --entrypoint /bin/sh blog:ci -c true 2>/dev/null; then echo "un shell est présent dans l'image"; exit 1; fi
+          docker logs blog 2>&1 | tail -5
           docker rm -f blog
 
       - name: Connexion à ghcr.io
@@ -66,6 +86,8 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name == 'push' }}
+          provenance: mode=max
+          sbom: true
           tags: |
             ghcr.io/evanndev/blog:1.0.${{ github.run_number }}
             ghcr.io/evanndev/blog:sha-${{ github.sha }}

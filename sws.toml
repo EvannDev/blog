@@ -1,0 +1,49 @@
+# static-web-server : serveur de fichiers statiques (binaire unique, image FROM scratch, sans shell).
+# Lecture seule, aucun état, aucune écriture disque.
+[general]
+host = "0.0.0.0"
+port = 8080
+root = "/public"
+log-level = "info"
+log-forwarded-for = true            # IP client réelle (X-Forwarded-For posé par Traefik/Pangolin)
+page404 = "/public/404.html"
+compression = true
+compression-static = false
+directory-listing = false
+include-hidden = false              # pas de fichiers cachés (.git, .env…)
+follow-symlinks = false
+redirect-trailing-slash = true
+health = true                       # GET/HEAD /livez et /readyz pour les sondes Kubernetes
+security-headers = false            # remplacés par les en-têtes explicites ci-dessous
+cache-control-headers = false       # idem
+max-header-size = 16384             # requêtes aux en-têtes démesurés rejetées
+idle-timeout = 30
+grace-period = 5
+
+[advanced]
+
+# En-têtes de sécurité sur TOUTES les réponses (fichiers, 404, redirections)
+[[advanced.headers]]
+source = "**"
+scope = "all"
+[advanced.headers.headers]
+Strict-Transport-Security = "max-age=63072000; includeSubDomains"
+X-Content-Type-Options = "nosniff"
+X-Frame-Options = "DENY"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+Cross-Origin-Opener-Policy = "same-origin"
+Cross-Origin-Resource-Policy = "same-origin"
+Content-Security-Policy = "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests"
+
+# Pages et flux : cache court (un merge doit être visible vite)
+[[advanced.headers]]
+source = "**"
+[advanced.headers.headers]
+Cache-Control = "public, max-age=300"
+
+# Assets d'Astro (noms hachés) : cache long et immuable
+[[advanced.headers]]
+source = "**/_astro/**"
+[advanced.headers.headers]
+Cache-Control = "public, max-age=31536000, immutable"
