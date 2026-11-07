@@ -1,0 +1,26 @@
+---
+import { REPO_URL } from '../consts';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="À propos" description="Qui écrit ce blog, et comment il est fabriqué.">
+	<h1>À propos</h1>
+	<p>
+		Je m'appelle Evann. Ce carnet de bord documente mon homelab : un petit cluster Kubernetes de trois Raspberry Pi 4
+		sous Talos Linux, piloté en GitOps par Argo CD, avec Cilium, des Gateways agentgateway, VictoriaMetrics et une
+		équipe d'agents IA qui m'aide à l'exploiter.
+	</p>
+
+	<h2>Comment ce blog est fabriqué</h2>
+	<p>
+		Le site est généré par <a href="https://astro.build">Astro</a>, empaqueté dans une image nginx, et servi depuis le
+		cluster lui-même, derrière la Gateway publique. Le <a href={REPO_URL}>code source</a> est public.
+	</p>
+	<p>
+		Une partie des articles est préparée par un <strong>studio éditorial d'agents IA</strong> : un rédacteur en chef
+		propose des sujets à partir de l'activité réelle du homelab, un rédacteur écrit, une vérificatrice confronte chaque
+		affirmation au code et au cluster, et un relecteur sécurité s'assure qu'aucune information sensible ne fuite. Chaque
+		article indique qui l'a rédigé et qui l'a vérifié. <strong>Rien n'est publié sans ma relecture</strong> : publier,
+		c'est fusionner une pull request.
+	</p>
+</BaseLayout>

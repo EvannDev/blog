@@ -1,0 +1,28 @@
+---
+import { REPO_URL, SITE_AUTHOR } from '../consts';
+
+const year = new Date().getFullYear();
+---
+
+<footer>
+	<p>
+		© {year} {SITE_AUTHOR} · Servi depuis trois Raspberry Pi, par Kubernetes ·
+		<a href={REPO_URL}>code source</a> · <a href="/rss.xml">RSS</a>
+	</p>
+</footer>
+
+<style>
+	footer {
+		border-top: 1px solid var(--border);
+		color: var(--fg-muted);
+		font-size: 0.88rem;
+		text-align: center;
+		padding: 2rem 1rem 3rem;
+	}
+	p {
+		margin: 0;
+	}
+	a {
+		color: inherit;
+	}
+</style>

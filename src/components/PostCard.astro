@@ -1,0 +1,65 @@
+---
+import FormattedDate from './FormattedDate.astro';
+import { readingTime, tagSlug, type Post } from '../lib/posts';
+
+interface Props {
+	post: Post;
+}
+
+const { post } = Astro.props;
+const { title, description, pubDate, tags, draft } = post.data;
+---
+
+<article>
+	<p class="meta muted">
+		<FormattedDate date={pubDate} /> · {readingTime(post.body)} min
+		{draft && <span class="draft">brouillon</span>}
+	</p>
+	<h2><a href={`/blog/${post.id}/`}>{title}</a></h2>
+	<p class="description">{description}</p>
+	{tags.length > 0 && (
+		<p class="tags">
+			{tags.map((tag) => <a class="tag" href={`/tags/${tagSlug(tag)}/`}>{tag}</a>)}
+		</p>
+	)}
+</article>
+
+<style>
+	article {
+		padding: 1.4rem 0;
+		border-bottom: 1px solid var(--border);
+	}
+	h2 {
+		margin: 0.2rem 0 0.4rem;
+		font-size: 1.3rem;
+	}
+	h2 a {
+		color: var(--fg);
+		text-decoration: none;
+	}
+	h2 a:hover {
+		color: var(--accent);
+	}
+	.meta {
+		margin: 0;
+		font-size: 0.88rem;
+	}
+	.description {
+		margin: 0 0 0.6rem;
+	}
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin: 0;
+	}
+	.draft {
+		margin-left: 0.4rem;
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		color: #b26a00;
+		border: 1px dashed currentColor;
+		border-radius: 4px;
+		padding: 0 0.35em;
+	}
+</style>

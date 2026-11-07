@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, getTags, tagSlug } from '../../lib/posts';
+
+const tags = getTags(await getPosts());
+---
+
+<BaseLayout title="Sujets" description="Les sujets abordés sur le carnet de bord du homelab.">
+	<h1>Sujets</h1>
+	{tags.length === 0 ? (
+		<p class="muted">Aucun sujet pour l'instant.</p>
+	) : (
+		<ul>
+			{tags.map(({ tag, count }) => (
+				<li>
+					<a class="tag" href={`/tags/${tagSlug(tag)}/`}>{tag}</a> <span class="muted">{count}</span>
+				</li>
+			))}
+		</ul>
+	)}
+</BaseLayout>
+
+<style>
+	ul {
+		list-style: none;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem 1.25rem;
+	}
+</style>

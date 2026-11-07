@@ -1,0 +1,21 @@
+---
+import PostCard from '../../components/PostCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, getTags, tagSlug, type Post } from '../../lib/posts';
+
+export async function getStaticPaths() {
+	const posts = await getPosts();
+	return getTags(posts).map(({ tag }) => ({
+		params: { tag: tagSlug(tag) },
+		props: { tag, posts: posts.filter((post) => post.data.tags.includes(tag)) },
+	}));
+}
+
+const { tag, posts } = Astro.props as { tag: string; posts: Post[] };
+---
+
+<BaseLayout title={`Sujet : ${tag}`} description={`Articles sur ${tag}.`}>
+	<p class="muted"><a href="/tags">← tous les sujets</a></p>
+	<h1>{tag}</h1>
+	{posts.map((post) => <PostCard post={post} />)}
+</BaseLayout>

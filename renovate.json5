@@ -1,0 +1,16 @@
+// Dépendances du blog (npm, image de base, actions GitHub).
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: ['config:recommended', ':dependencyDashboard'],
+  timezone: 'Europe/Paris',
+  schedule: ['* 6-12 * * 6'],
+  minimumReleaseAge: '3 days',
+  labels: ['dependencies'],
+  packageRules: [
+    {
+      // Mineures et patchs : fusion automatique si la CI (build du site + image) passe
+      matchUpdateTypes: ['minor', 'patch', 'digest'],
+      automerge: true,
+    },
+  ],
+}

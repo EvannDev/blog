@@ -1,0 +1,13 @@
+---
+import PostCard from '../../components/PostCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts } from '../../lib/posts';
+
+const posts = await getPosts();
+---
+
+<BaseLayout title="Articles" description="Tous les articles du carnet de bord du homelab.">
+	<h1>Articles</h1>
+	<p class="muted">{posts.length} article{posts.length > 1 ? 's' : ''}, du plus récent au plus ancien.</p>
+	{posts.map((post) => <PostCard post={post} />)}
+</BaseLayout>

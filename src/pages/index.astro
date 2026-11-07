@@ -1,0 +1,51 @@
+---
+import PostCard from '../components/PostCard.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPosts } from '../lib/posts';
+
+const posts = (await getPosts()).slice(0, 5);
+---
+
+<BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
+	<section class="hero">
+		<p class="kicker">homelab · kubernetes · gitops · agents IA</p>
+		<h1>{SITE_TITLE}</h1>
+		<p class="lede">
+			Trois Raspberry Pi, Talos Linux, Argo CD et une petite équipe d'agents IA. Ici, je raconte comment tout ça
+			tient debout, les incidents, les choix d'architecture, et ce que j'en retiens.
+		</p>
+	</section>
+
+	<section aria-labelledby="latest">
+		<h2 id="latest" class="section-title">Derniers articles</h2>
+		{posts.length === 0 ? <p class="muted">Le premier article arrive bientôt.</p> : posts.map((post) => <PostCard post={post} />)}
+		<p class="more"><a href="/blog">Tous les articles →</a></p>
+	</section>
+</BaseLayout>
+
+<style>
+	.hero {
+		padding: 2rem 0 1rem;
+	}
+	.kicker {
+		font-family: var(--font-mono);
+		font-size: 0.85rem;
+		color: var(--accent);
+		margin: 0 0 0.5rem;
+	}
+	.lede {
+		font-size: 1.15rem;
+		color: var(--fg-muted);
+	}
+	.section-title {
+		font-size: 0.85rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--fg-muted);
+		margin: 2rem 0 0;
+	}
+	.more {
+		margin-top: 1.5rem;
+	}
+</style>

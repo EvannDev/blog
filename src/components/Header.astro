@@ -1,0 +1,97 @@
+---
+import { SITE_TITLE } from '../consts';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const links = [
+	{ href: '/blog', label: 'Articles' },
+	{ href: '/tags', label: 'Sujets' },
+	{ href: '/a-propos', label: 'À propos' },
+];
+const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
+---
+
+<header>
+	<nav aria-label="Navigation principale">
+		<a class="brand" href="/"><span class="prompt" aria-hidden="true">~/</span>{SITE_TITLE}</a>
+		<div class="links">
+			{links.map(({ href, label }) => (
+				<a href={href} aria-current={isActive(href) ? 'page' : undefined}>{label}</a>
+			))}
+			<a href="/rss.xml" title="Flux RSS">RSS</a>
+			<button id="theme-toggle" type="button" aria-label="Basculer le thème clair / sombre" title="Thème">
+				<span aria-hidden="true">◐</span>
+			</button>
+		</div>
+	</nav>
+</header>
+
+<script>
+	const button = document.getElementById('theme-toggle');
+	button?.addEventListener('click', () => {
+		const root = document.documentElement;
+		const current = root.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+		const next = current === 'dark' ? 'light' : 'dark';
+		root.dataset.theme = next;
+		try {
+			localStorage.setItem('theme', next);
+		} catch {}
+	});
+</script>
+
+<style>
+	header {
+		border-bottom: 1px solid var(--border);
+		background: var(--bg);
+		position: sticky;
+		top: 0;
+		z-index: 10;
+	}
+	nav {
+		max-width: var(--content);
+		margin: 0 auto;
+		padding: 0.8rem 1rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1.25rem;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.brand {
+		font-weight: 700;
+		color: var(--fg);
+		text-decoration: none;
+	}
+	.prompt {
+		font-family: var(--font-mono);
+		color: var(--accent);
+		margin-right: 0.15em;
+	}
+	.links {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+		font-size: 0.95rem;
+	}
+	.links a {
+		color: var(--fg-muted);
+		text-decoration: none;
+	}
+	.links a:hover,
+	.links a[aria-current='page'] {
+		color: var(--accent);
+	}
+	button {
+		background: none;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		color: var(--fg-muted);
+		width: 2rem;
+		height: 2rem;
+		cursor: pointer;
+		font-size: 1rem;
+	}
+	button:hover {
+		color: var(--accent);
+		border-color: var(--accent);
+	}
+</style>
