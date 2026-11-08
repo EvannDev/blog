@@ -35,3 +35,31 @@ export function readingTime(body: string | undefined): number {
 	const words = (s: string) => s.split(/\s+/).filter(Boolean).length;
 	return Math.max(1, Math.round((words(prose) + words(code) / 2) / 220));
 }
+
+/** Teinte d'un sujet (design system : une couleur fixe par sujet, reconnaissable d'une page à l'autre). */
+const TAG_TONES: Record<string, string> = {
+	homelab: 'butter',
+	kubernetes: 'sky',
+	gitops: 'mint',
+	'agents-ia': 'lavender',
+};
+const FALLBACK_TONES = ['peach', 'turquoise', 'pink'];
+export function tagTone(tag: string): string {
+	const slug = tagSlug(tag);
+	if (TAG_TONES[slug]) return TAG_TONES[slug];
+	let hash = 0;
+	for (const char of slug) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+	return FALLBACK_TONES[hash % FALLBACK_TONES.length];
+}
+
+/** Numéro d'un article dans le carnet : 1 pour le plus ancien publié. */
+export function postNumber(posts: Post[], post: Post): number {
+	const chronological = [...posts].sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
+	return chronological.findIndex((p) => p.id === post.id) + 1;
+}
+
+/** Teinte du Marker d'un article : coral → mint → sky → lavender → butter. */
+const MARKER_TONES = ['coral', 'mint', 'sky', 'lavender', 'butter'];
+export function markerTone(index: number): string {
+	return MARKER_TONES[(Math.max(1, index) - 1) % MARKER_TONES.length];
+}

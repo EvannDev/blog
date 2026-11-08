@@ -1,13 +1,37 @@
 ---
 import PostCard from '../../components/PostCard.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPosts } from '../../lib/posts';
+import { getPosts, postNumber } from '../../lib/posts';
 
 const posts = await getPosts();
 ---
 
 <BaseLayout title="Articles" description="Tous les articles du carnet de bord du homelab.">
-	<h1>Articles</h1>
-	<p class="muted">{posts.length} article{posts.length > 1 ? 's' : ''}, du plus récent au plus ancien.</p>
-	{posts.map((post) => <PostCard post={post} />)}
+	<header class="page-head">
+		<h1 class="cb-display cb-display--page">Articles</h1>
+		<p class="cb-lede cb-lede--muted">
+			{posts.length} article{posts.length > 1 ? 's' : ''}, du plus récent au plus ancien.
+		</p>
+	</header>
+	<ul class="cb-grid">
+		{
+			posts.map((post) => (
+				<li>
+					<PostCard post={post} number={postNumber(posts, post)} headingLevel="h2" />
+				</li>
+			))
+		}
+	</ul>
 </BaseLayout>
+
+<style>
+	.page-head {
+		padding: clamp(40px, 6vw, 80px) 0 var(--space-7);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+	.page-head .cb-lede {
+		margin: 0;
+	}
+</style>

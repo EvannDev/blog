@@ -1,31 +1,39 @@
 ---
+import Ornament from '../../components/Ornament.astro';
+import TagList from '../../components/TagList.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPosts, getTags, tagSlug } from '../../lib/posts';
+import { getPosts, getTags } from '../../lib/posts';
 
 const tags = getTags(await getPosts());
 ---
 
 <BaseLayout title="Sujets" description="Les sujets abordés sur le carnet de bord du homelab.">
-	<h1>Sujets</h1>
-	{tags.length === 0 ? (
-		<p class="muted">Aucun sujet pour l'instant.</p>
-	) : (
-		<ul>
-			{tags.map(({ tag, count }) => (
-				<li>
-					<a class="tag" href={`/tags/${tagSlug(tag)}/`}>{tag}</a> <span class="muted">{count}</span>
-				</li>
-			))}
-		</ul>
-	)}
+	<header class="page-head">
+		<h1 class="cb-display cb-display--page">Sujets</h1>
+		<p class="cb-lede cb-lede--muted">Chaque sujet regroupe les articles qui en parlent. Le chiffre, c'est leur nombre.</p>
+	</header>
+	{
+		tags.length === 0 ? (
+			<p class="cb-lede cb-lede--muted">Aucun sujet pour l'instant.</p>
+		) : (
+			<section class="cb-band" aria-label="Tous les sujets">
+				<div class="cb-ornaments" aria-hidden="true">
+					<Ornament kind="container" size={104} style="right: 24px; top: -44px; --r: 10deg" />
+				</div>
+				<TagList tags={tags} size="lg" white />
+			</section>
+		)
+	}
 </BaseLayout>
 
 <style>
-	ul {
-		list-style: none;
-		padding: 0;
+	.page-head {
+		padding: clamp(40px, 6vw, 80px) 0 var(--space-7);
 		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem 1.25rem;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+	.page-head .cb-lede {
+		margin: 0;
 	}
 </style>

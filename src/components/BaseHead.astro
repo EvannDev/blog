@@ -24,7 +24,13 @@ const fullTitle = title === SITE_TITLE ? title : `${title} · ${SITE_TITLE}`;
 <link rel="sitemap" href="/sitemap-index.xml" />
 <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href={new URL('rss.xml', Astro.site)} />
 <meta name="generator" content={Astro.generator} />
-<Font cssVariable="--font-atkinson" preload />
+<Font cssVariable="--font-display" preload />
+<Font cssVariable="--font-ui" preload />
+<Font cssVariable="--font-body" preload />
+<Font cssVariable="--font-mono" />
+<Font cssVariable="--font-collage-poster" />
+<Font cssVariable="--font-collage-wide" />
+<Font cssVariable="--font-collage-thin" />
 
 <link rel="canonical" href={canonicalURL} />
 <title>{fullTitle}</title>

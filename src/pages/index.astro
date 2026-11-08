@@ -1,51 +1,194 @@
 ---
+import CollageTitle from '../components/CollageTitle.astro';
+import FeatureCard from '../components/FeatureCard.astro';
+import Ornament from '../components/Ornament.astro';
 import PostCard from '../components/PostCard.astro';
+import TagList from '../components/TagList.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getPosts } from '../lib/posts';
+import { getPosts, getTags, postNumber } from '../lib/posts';
 
-const posts = (await getPosts()).slice(0, 5);
+const posts = await getPosts();
+const [latest, ...others] = posts;
+const recent = others.slice(0, 6);
+const tags = getTags(posts);
 ---
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
 	<section class="hero">
-		<p class="kicker">homelab · kubernetes · gitops · agents IA</p>
-		<h1>{SITE_TITLE}</h1>
-		<p class="lede">
-			Trois Raspberry Pi, Talos Linux, Argo CD et une petite équipe d'agents IA. Ici, je raconte comment tout ça
-			tient debout, les incidents, les choix d'architecture, et ce que j'en retiens.
-		</p>
+		<!-- Stickers : le conteneur .cb-parallax porte la position et la parallaxe (data-depth, en px) ;
+		     le sticker porte --r (rotation de repos), --t (durée du flottement), --d (décalage), --i (ordre d'apparition). -->
+		<div class="cb-ornaments" aria-hidden="true">
+			<span class="cb-parallax" data-depth="22" style="left: -1%; top: 10%">
+				<Ornament kind="pod" size={150} style="--r: -10deg; --t: 7s; --i: 0" />
+			</span>
+			<span class="cb-parallax" data-depth="12" style="right: 2%; top: 4%">
+				<Ornament kind="cluster" size={120} style="--r: 8deg; --t: 8s; --d: -2s; --i: 1" />
+			</span>
+			<span class="cb-parallax" data-depth="-16" style="left: 8%; bottom: 8%">
+				<Ornament kind="terminal" size={120} style="--r: 9deg; --t: 5.5s; --d: -3s; --i: 3" />
+			</span>
+			<span class="cb-parallax" data-depth="18" style="right: 7%; bottom: 4%">
+				<Ornament kind="container" size={132} style="--r: -7deg; --t: 6.5s; --d: -1s; --i: 4" />
+			</span>
+			<span class="cb-parallax" data-depth="-10" style="left: 24%; top: 4%">
+				<Ornament kind="branch" size={72} style="--r: -14deg; --t: 5s; --d: -4s; --i: 5" />
+			</span>
+			<span class="cb-parallax" data-depth="-24" style="left: 7%; top: 50%">
+				<span class="cb-float cb-fill-sky" style="--r: -9deg; --t: 4.5s; --d: -1s; --i: 2">kubectl</span>
+			</span>
+			<span class="cb-parallax" data-depth="-20" style="right: 4%; top: 46%">
+				<span class="cb-float cb-fill-peach" style="--r: 8deg; --t: 5.5s; --d: -4s; --i: 6">arm64</span>
+			</span>
+		</div>
+		<div class="hero__content">
+			<CollageTitle
+				label="Trois Pi, un cluster."
+				pieces={[
+					{ text: 'Trois', font: 'bodoni', paper: 'newsprint', rotate: -3, edge: 1, tape: [{ tone: 'butter', at: 'top-left' }] },
+					{ text: 'Pi,', font: 'wide', paper: 'ink', rotate: 4, shift: -0.08, edge: 2, tape: [{ tone: 'white', at: 'top-right' }] },
+					{ text: 'un', font: 'thin', paper: 'pink', rotate: -6, shift: 0.12, edge: 3 },
+					{
+						text: 'cluster.',
+						font: 'poster',
+						paper: 'white',
+						rotate: 2,
+						edge: 4,
+						accentLast: true,
+						tape: [
+							{ tone: 'mint', at: 'bottom-left' },
+							{ tone: 'mint', at: 'top-right' },
+						],
+					},
+				]}
+			/>
+			<p class="cb-lede">
+				Trois Raspberry Pi, Talos Linux, Argo CD et une petite équipe d'agents IA. Je raconte comment tout ça tient
+				debout, <span class="cb-highlight cb-shake">ce qui casse</span>, et ce que j'en retiens.
+			</p>
+		</div>
 	</section>
 
-	<section aria-labelledby="latest">
-		<h2 id="latest" class="section-title">Derniers articles</h2>
-		{posts.length === 0 ? <p class="muted">Le premier article arrive bientôt.</p> : posts.map((post) => <PostCard post={post} />)}
-		<p class="more"><a href="/blog">Tous les articles →</a></p>
-	</section>
+	{
+		latest ? (
+			<section class="block" aria-label="Dernier article">
+				<FeatureCard post={latest} />
+			</section>
+		) : (
+			<p class="cb-lede cb-lede--muted block">Le premier article arrive bientôt.</p>
+		)
+	}
+
+	{
+		recent.length > 0 && (
+			<section class="block" aria-labelledby="precedents">
+				<div class="cb-section-head">
+					<h2 id="precedents">Les précédents</h2>
+				</div>
+				<ul class="cb-grid">
+					{recent.map((post) => (
+						<li>
+							<PostCard post={post} number={postNumber(posts, post)} />
+						</li>
+					))}
+				</ul>
+				{others.length > recent.length && (
+					<p class="more">
+						<a class="cb-btn" href="/blog">
+							Tous les articles →
+						</a>
+					</p>
+				)}
+			</section>
+		)
+	}
+
+	{
+		tags.length > 0 && (
+			<section class="cb-band block" aria-labelledby="sujets">
+				<div class="cb-ornaments" aria-hidden="true">
+					<Ornament kind="manifest" size={72} style="left: 24px; top: -38px; --r: -12deg" />
+				</div>
+				<h2 id="sujets">Les sujets</h2>
+				<div class="band-tags">
+					<TagList tags={tags} size="lg" white />
+				</div>
+				<p>
+					Tous les articles sont aussi dans le <a href="/rss.xml">flux RSS</a>.
+				</p>
+			</section>
+		)
+	}
 </BaseLayout>
+
+<script>
+	// Parallaxe légère : les stickers du héros suivent un peu la souris (souris seulement, mouvement autorisé).
+	// Une seule boucle requestAnimationFrame lisse la position (interpolation), sans transition CSS :
+	// le flottement des stickers, animé à part, n'est jamais interrompu.
+	const hero = document.querySelector<HTMLElement>('.hero');
+	const layers = [...document.querySelectorAll<HTMLElement>('.hero .cb-parallax')].map((el) => ({
+		el,
+		depth: Number(el.dataset.depth) || 0,
+	}));
+	const allowed = matchMedia('(prefers-reduced-motion: no-preference) and (pointer: fine)');
+
+	if (hero && layers.length > 0 && allowed.matches) {
+		const target = { x: 0, y: 0 };
+		const current = { x: 0, y: 0 };
+		let frame = 0;
+
+		const tick = () => {
+			current.x += (target.x - current.x) * 0.08;
+			current.y += (target.y - current.y) * 0.08;
+			for (const { el, depth } of layers) {
+				el.style.translate = `${(current.x * depth).toFixed(2)}px ${(current.y * depth).toFixed(2)}px`;
+			}
+			const settled = Math.abs(target.x - current.x) < 0.001 && Math.abs(target.y - current.y) < 0.001;
+			frame = settled ? 0 : requestAnimationFrame(tick);
+		};
+		const start = () => {
+			if (!frame) frame = requestAnimationFrame(tick);
+		};
+
+		hero.addEventListener('pointermove', (event) => {
+			const box = hero.getBoundingClientRect();
+			target.x = (event.clientX - box.left) / box.width - 0.5;
+			target.y = (event.clientY - box.top) / box.height - 0.5;
+			start();
+		});
+		hero.addEventListener('pointerleave', () => {
+			target.x = 0;
+			target.y = 0;
+			start();
+		});
+	}
+</script>
 
 <style>
 	.hero {
-		padding: 2rem 0 1rem;
+		position: relative;
+		padding: clamp(64px, 10vw, var(--space-9)) 0 clamp(72px, 9vw, 120px);
+		text-align: center;
 	}
-	.kicker {
-		font-family: var(--font-mono);
-		font-size: 0.85rem;
-		color: var(--accent);
-		margin: 0 0 0.5rem;
+	.hero__content {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 	}
-	.lede {
-		font-size: 1.15rem;
-		color: var(--fg-muted);
+	.hero .cb-lede {
+		max-width: 620px;
+		margin-top: var(--space-6);
 	}
-	.section-title {
-		font-size: 0.85rem;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--fg-muted);
-		margin: 2rem 0 0;
+	.block {
+		margin-bottom: var(--space-8);
+	}
+	.band-tags {
+		margin-top: 28px;
 	}
 	.more {
-		margin-top: 1.5rem;
+		margin: var(--space-6) 0 0;
+		text-align: center;
 	}
 </style>

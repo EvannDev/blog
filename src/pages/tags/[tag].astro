@@ -1,21 +1,57 @@
 ---
 import PostCard from '../../components/PostCard.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPosts, getTags, tagSlug, type Post } from '../../lib/posts';
+import { getPosts, getTags, postNumber, tagSlug, tagTone, type Post } from '../../lib/posts';
 
 export async function getStaticPaths() {
 	const posts = await getPosts();
 	return getTags(posts).map(({ tag }) => ({
 		params: { tag: tagSlug(tag) },
-		props: { tag, posts: posts.filter((post) => post.data.tags.includes(tag)) },
+		props: { tag, posts: posts.filter((post) => post.data.tags.includes(tag)), all: posts },
 	}));
 }
 
-const { tag, posts } = Astro.props as { tag: string; posts: Post[] };
+const { tag, posts, all } = Astro.props as { tag: string; posts: Post[]; all: Post[] };
 ---
 
 <BaseLayout title={`Sujet : ${tag}`} description={`Articles sur ${tag}.`}>
-	<p class="muted"><a href="/tags">← tous les sujets</a></p>
-	<h1>{tag}</h1>
-	{posts.map((post) => <PostCard post={post} />)}
+	<header class="page-head">
+		<p><a class="cb-btn cb-btn--plain" href="/tags">← Tous les sujets</a></p>
+		<h1 class="cb-display cb-display--page">
+			<span class={`cb-tag cb-fill-${tagTone(tag)} title-tag`}>{tag}</span>
+		</h1>
+		<p class="cb-lede cb-lede--muted">{posts.length} article{posts.length > 1 ? 's' : ''} sur ce sujet.</p>
+	</header>
+	<ul class="cb-grid">
+		{
+			posts.map((post) => (
+				<li>
+					<PostCard post={post} number={postNumber(all, post)} headingLevel="h2" />
+				</li>
+			))
+		}
+	</ul>
 </BaseLayout>
+
+<style>
+	.page-head {
+		padding: clamp(32px, 5vw, 64px) 0 var(--space-7);
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-5);
+	}
+	.page-head p {
+		margin: 0;
+	}
+	.title-tag {
+		padding: 8px 32px 14px;
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: inherit;
+		line-height: 1;
+		letter-spacing: -0.03em;
+		box-shadow: var(--shadow-lg);
+		white-space: normal;
+	}
+</style>

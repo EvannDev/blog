@@ -4,23 +4,39 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="À propos" description="Qui écrit ce blog, et comment il est fabriqué.">
-	<h1>À propos</h1>
-	<p>
-		Je m'appelle Evann. Ce carnet de bord documente mon homelab : un petit cluster Kubernetes de trois Raspberry Pi 4
-		sous Talos Linux, piloté en GitOps par Argo CD, avec Cilium, des Gateways agentgateway, VictoriaMetrics et une
-		équipe d'agents IA qui m'aide à l'exploiter.
-	</p>
+	<header class="page-head">
+		<h1 class="cb-display cb-display--page">À propos</h1>
+	</header>
+	<div class="cb-sheet">
+		<div class="cb-prose">
+			<p>
+				Je m'appelle Evann. Ce carnet de bord documente mon homelab : un petit cluster Kubernetes de trois Raspberry
+				Pi 4 sous Talos Linux, piloté en GitOps par Argo CD, avec Cilium, des Gateways agentgateway, VictoriaMetrics
+				et une équipe d'agents IA qui m'aide à l'exploiter.
+			</p>
 
-	<h2>Comment ce blog est fabriqué</h2>
-	<p>
-		Le site est généré par <a href="https://astro.build">Astro</a>, empaqueté dans une image minimale (un seul binaire, sans shell), et servi depuis le
-		cluster lui-même, derrière la Gateway publique. Le <a href={REPO_URL}>code source</a> est public.
-	</p>
-	<p>
-		Une partie des articles est préparée par un studio éditorial d'agents IA : un rédacteur en chef
-		propose des sujets à partir de l'activité réelle du homelab, un rédacteur écrit, une vérificatrice confronte chaque
-		affirmation au code et au cluster, et un relecteur sécurité s'assure qu'aucune information sensible ne fuite. Chaque
-		article indique qui l'a rédigé et qui l'a vérifié. C'est moi qui relis et qui publie, en fusionnant une pull
-		request.
-	</p>
+			<h2>Comment ce blog est fabriqué</h2>
+			<p>
+				Le site est généré par <a href="https://astro.build">Astro</a>, empaqueté dans une image minimale (un seul
+				binaire, sans shell), et servi depuis le cluster lui-même, derrière la Gateway publique. Le <a href={REPO_URL}
+					>code source</a
+				> est public.
+			</p>
+			<p>
+				Une partie des articles est préparée par un studio éditorial d'agents IA : un rédacteur en chef propose des
+				sujets à partir de l'activité réelle du homelab, un rédacteur écrit, une vérificatrice confronte chaque
+				affirmation au code et au cluster, et un relecteur sécurité s'assure qu'aucune information sensible ne fuite.
+				Chaque article indique qui l'a rédigé et qui l'a vérifié. C'est moi qui relis et qui publie, en fusionnant une
+				pull request.
+			</p>
+		</div>
+	</div>
 </BaseLayout>
+
+<style>
+	.page-head {
+		max-width: var(--size-sheet);
+		margin: 0 auto;
+		padding: clamp(40px, 6vw, 80px) 0 var(--space-7);
+	}
+</style>

@@ -1,0 +1,26 @@
+---
+import { readingTime, type Post } from '../lib/posts';
+
+interface Props {
+	post: Post;
+	label?: string;
+}
+
+const { post, label = 'À la une' } = Astro.props;
+const { title, description, pubDate, draft } = post.data;
+const date = pubDate.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+---
+
+<a class="cb-feature" href={`/blog/${post.id}/`}>
+	<div class="cb-feature__cap">
+		<span>{label}{draft && ' · brouillon'}</span>
+		<span class="cb-feature__date"><time datetime={pubDate.toISOString()}>{date}</time> · {readingTime(post.body)} min</span>
+	</div>
+	<div class="cb-feature__body">
+		<div class="cb-feature__text">
+			<h2 class="cb-feature__title">{title}</h2>
+			<p class="cb-feature__desc">{description}</p>
+		</div>
+		<span class="cb-btn cb-btn--coral" aria-hidden="true">Lire l'article →</span>
+	</div>
+</a>

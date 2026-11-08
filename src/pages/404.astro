@@ -1,9 +1,45 @@
 ---
+import Ornament from '../components/Ornament.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Page introuvable" description="Cette page n'existe pas.">
-	<h1>404</h1>
-	<p>Cette page n'existe pas, ou plus. <code>kubectl get page</code> ne trouve rien non plus.</p>
-	<p><a href="/">← retour à l'accueil</a></p>
+	<section class="lost">
+		<div class="cb-ornaments" aria-hidden="true">
+			<Ornament kind="pod" size={130} style="left: 4%; top: 10%; --r: -12deg" />
+			<Ornament kind="rack" size={80} style="right: 8%; bottom: 14%; --r: 10deg" />
+		</div>
+		<div class="lost__content">
+			<span class="cb-badge cb-fill-lavender">Erreur 404</span>
+			<h1 class="cb-display">Page <em>introuvable</em></h1>
+			<p class="cb-lede">Cette page n'existe pas, ou plus. <code>kubectl get page</code> ne trouve rien non plus.</p>
+			<a class="cb-btn cb-btn--coral" href="/">← Retour à l'accueil</a>
+		</div>
+	</section>
 </BaseLayout>
+
+<style>
+	.lost {
+		position: relative;
+		padding: clamp(64px, 10vw, var(--space-9)) 0;
+		text-align: center;
+	}
+	.lost__content {
+		position: relative;
+		z-index: 2;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-6);
+	}
+	.cb-lede {
+		max-width: 620px;
+	}
+	code {
+		padding: 0.1em 0.4em;
+		border: var(--stroke-thin) solid var(--line);
+		border-radius: 8px;
+		background: var(--surface-code);
+		font-size: 0.88em;
+	}
+</style>
