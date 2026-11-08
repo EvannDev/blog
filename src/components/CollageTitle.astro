@@ -1,0 +1,151 @@
+---
+// Titre en collage de magazine (maquette H2) : chaque mot est découpé dans un papier différent,
+// avec sa police, une petite rotation, un bord déchiré, une ombre pleine et parfois du scotch.
+// Le texte reste lisible : le h1 porte aria-label, les morceaux sont aria-hidden.
+type Font = 'bodoni' | 'wide' | 'thin' | 'poster';
+type Paper = 'newsprint' | 'ink' | 'pink' | 'white' | 'butter' | 'mint' | 'sky' | 'lavender';
+type Edge = 1 | 2 | 3 | 4;
+type Tape = { tone: 'butter' | 'white' | 'mint'; at: 'top-left' | 'top-right' | 'bottom-left' };
+
+export interface Piece {
+	text: string;
+	font: Font;
+	paper: Paper;
+	/** Rotation en degrés. */
+	rotate: number;
+	/** Décalage vertical, en em du titre. */
+	shift?: number;
+	/** Taille relative au titre (1 = taille de base). */
+	scale?: number;
+	edge?: Edge;
+	/** Dernier caractère en accent (ex. le point final). */
+	accentLast?: boolean;
+	tape?: Tape[];
+}
+
+interface Props {
+	label: string;
+	pieces: Piece[];
+	class?: string;
+}
+
+const { label, pieces, class: className } = Astro.props;
+---
+
+<h1 class:list={['cb-collage', className]} aria-label={label}>
+	{
+		pieces.map((piece) => {
+			const text = piece.accentLast ? piece.text.slice(0, -1) : piece.text;
+			const last = piece.accentLast ? piece.text.slice(-1) : '';
+			return (
+				<span
+					class="cb-collage__piece"
+					aria-hidden="true"
+					style={`--rot: ${piece.rotate}deg; --shift: ${piece.shift ?? 0}em; --scale: ${piece.scale ?? 1}`}
+				>
+					<span class="cb-collage__shadow">
+						<span class:list={['cb-collage__paper', `font-${piece.font}`, `paper-${piece.paper}`, `edge-${piece.edge ?? 1}`]}>
+							{text}
+							{last && <span class="cb-collage__accent">{last}</span>}
+						</span>
+					</span>
+					{piece.tape?.map((tape) => <span class:list={['cb-collage__tape', `tape-${tape.tone}`, `at-${tape.at}`]} />)}
+				</span>
+			);
+		})
+	}
+</h1>
+
+<style>
+	.cb-collage {
+		margin: 0;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 0.18em 0.15em;
+		max-width: 1100px;
+		font-weight: 400;
+		font-size: clamp(44px, 8.6vw, 112px);
+		line-height: 1;
+	}
+	.cb-collage__piece {
+		position: relative;
+		display: inline-block;
+		font-size: calc(var(--scale) * 1em);
+		transform: rotate(var(--rot)) translateY(var(--shift));
+	}
+	/* L'ombre suit le bord déchiré : drop-shadow sur le parent du papier découpé */
+	.cb-collage__shadow {
+		display: inline-block;
+		filter: drop-shadow(4px 4px 0 var(--line));
+	}
+	.cb-collage__paper {
+		display: inline-block;
+		padding: 0.1em 0.24em 0.18em;
+		color: var(--on-fill);
+		white-space: nowrap;
+	}
+	.cb-collage__accent {
+		color: var(--accent);
+	}
+
+	/* Polices : une par morceau */
+	.font-bodoni {
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 800;
+	}
+	.font-wide {
+		font-family: var(--font-collage-wide);
+		font-weight: 800;
+		font-size: 0.8em;
+		padding: 0.18em 0.3em 0.24em;
+	}
+	.font-thin {
+		font-family: var(--font-collage-thin);
+		font-style: italic;
+		font-weight: 400;
+		font-size: 1.04em;
+	}
+	.font-poster {
+		font-family: var(--font-collage-poster);
+		font-weight: 400;
+		font-size: 1.14em;
+	}
+
+	/* Papiers : ils ne changent pas avec le thème, comme les pastels */
+	.paper-newsprint { background: var(--newsprint); }
+	.paper-ink { background: var(--on-fill); color: var(--newsprint); }
+	.paper-pink { background: var(--pink); }
+	.paper-white { background: var(--fill-white); }
+	.paper-butter { background: var(--butter); }
+	.paper-mint { background: var(--mint); }
+	.paper-sky { background: var(--sky); }
+	.paper-lavender { background: var(--lavender); }
+	.paper-ink .cb-collage__accent { color: var(--coral); }
+
+	/* Bords déchirés */
+	.edge-1 { clip-path: polygon(2% 6%, 18% 0%, 40% 4%, 63% 0%, 85% 5%, 100% 2%, 97% 30%, 100% 62%, 96% 100%, 70% 95%, 48% 100%, 22% 96%, 0% 100%, 3% 66%, 0% 34%); }
+	.edge-2 { clip-path: polygon(0% 3%, 30% 7%, 58% 0%, 100% 4%, 97% 50%, 100% 96%, 70% 100%, 40% 93%, 5% 100%, 2% 52%); }
+	.edge-3 { clip-path: polygon(6% 0%, 50% 5%, 94% 0%, 100% 45%, 96% 100%, 52% 95%, 0% 98%, 4% 50%); }
+	.edge-4 { clip-path: polygon(3% 8%, 22% 0%, 48% 6%, 74% 0%, 100% 7%, 96% 38%, 100% 70%, 95% 100%, 66% 94%, 38% 100%, 12% 95%, 0% 100%, 4% 62%, 0% 30%); }
+
+	/* Scotch de masquage */
+	.cb-collage__tape {
+		position: absolute;
+		width: 0.72em;
+		height: 0.22em;
+		min-width: 44px;
+		min-height: 14px;
+		border-left: 2px dotted color-mix(in srgb, var(--on-fill) 25%, transparent);
+		border-right: 2px dotted color-mix(in srgb, var(--on-fill) 25%, transparent);
+		pointer-events: none;
+	}
+	.tape-butter { background: color-mix(in srgb, var(--butter) 75%, transparent); }
+	.tape-white { background: color-mix(in srgb, var(--fill-white) 72%, transparent); }
+	.tape-mint { background: color-mix(in srgb, var(--mint) 80%, transparent); }
+	.at-top-left { left: -0.14em; top: -0.06em; transform: rotate(-28deg); }
+	.at-top-right { right: -0.14em; top: -0.08em; transform: rotate(32deg); }
+	.at-bottom-left { left: -0.12em; bottom: -0.04em; transform: rotate(24deg); }
+</style>

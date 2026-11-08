@@ -4,25 +4,40 @@ import { REPO_URL, SITE_AUTHOR } from '../consts';
 const year = new Date().getFullYear();
 ---
 
-<footer>
-	<p>
-		© {year} {SITE_AUTHOR} · Servi depuis trois Raspberry Pi, par Kubernetes ·
-		<a href={REPO_URL}>code source</a> · <a href="/rss.xml">RSS</a>
-	</p>
+<footer class="cb-page">
+	<div class="cb-footer">
+		<p>© {year} {SITE_AUTHOR} · Servi depuis trois Raspberry Pi, par Kubernetes</p>
+		<p class="links"><a href={REPO_URL}>Code source</a><a href="/rss.xml">RSS</a></p>
+	</div>
 </footer>
 
 <style>
-	footer {
-		border-top: 1px solid var(--border);
-		color: var(--fg-muted);
-		font-size: 0.88rem;
-		text-align: center;
-		padding: 2rem 1rem 3rem;
+	.cb-footer {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--space-3) 32px;
+		padding: 28px 0 48px;
+		border-top: var(--stroke) dashed var(--line);
+		font-size: 15px;
+		line-height: 1.5;
+		color: var(--ink-muted);
 	}
 	p {
 		margin: 0;
 	}
-	a {
-		color: inherit;
+	.links {
+		display: flex;
+		gap: var(--space-5);
+		font-family: var(--font-ui);
+		font-weight: 600;
+	}
+	.links a {
+		color: var(--ink);
+		text-decoration: none;
+	}
+	.links a:hover {
+		text-decoration: underline;
 	}
 </style>

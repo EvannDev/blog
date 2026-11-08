@@ -1,0 +1,29 @@
+---
+import { tagSlug, tagTone } from '../lib/posts';
+
+interface Props {
+	tags: { tag: string; count?: number }[];
+	size?: 'md' | 'lg';
+	/** Pilules blanches (bande « Les sujets ») plutôt que la teinte de chaque sujet. */
+	white?: boolean;
+	label?: string;
+}
+
+const { tags, size = 'md', white = false, label = 'Sujets' } = Astro.props;
+---
+
+<ul class="cb-tags" aria-label={label}>
+	{
+		tags.map(({ tag, count }) => (
+			<li>
+				<a
+					class:list={['cb-tag', `cb-fill-${white ? 'white' : tagTone(tag)}`, size === 'lg' && 'cb-tag--lg']}
+					href={`/tags/${tagSlug(tag)}/`}
+				>
+					{tag}
+					{count !== undefined && <span class="cb-tag__count">{count}</span>}
+				</a>
+			</li>
+		))
+	}
+</ul>

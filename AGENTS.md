@@ -53,6 +53,19 @@ Ce dépôt est le blog **Carnet de bord du homelab** (Astro, site statique), pub
 - Une faille connue **non corrigée**, ou une description exploitable d'un point faible actuel.
 - Un doute ? Généralise (« une IP du LAN », « un token stocké dans Bitwarden ») ou retire le passage.
 
+## Interface : le design system « Carnet de bord »
+
+L'UI suit le design system publié sur Claude Design : https://claude.ai/artifact/S3TcWs1UKBLWH5PTWm59pG (lis son
+`README.md`, puis la fiche du composant concerné). Dans le code :
+
+- les jetons (couleurs clair / sombre, ombres, rayons, espacements) et les classes `cb-*` sont dans
+  [`src/styles/global.css`](./src/styles/global.css), avec les mêmes noms que `tokens.json` ;
+- les polices (Bodoni Moda, Fredoka, Quicksand, JetBrains Mono, et Gloock, Unbounded, Instrument Serif pour le collage) sont auto-hébergées par l'API Fonts d'Astro
+  (`astro.config.mjs`) : ne charge jamais une police ou un style depuis un CDN, la CSP de `sws.toml` le bloque ;
+- composants : `Header`, `Footer`, `PostCard`, `FeatureCard`, `TagList`, `Ornament` (stickers infra), `CollageTitle` (titre de l'accueil) dans `src/components/`.
+
+Une valeur en dur (couleur, ombre floue, rayon) au lieu d'un jeton est un bug.
+
 ## Développement
 
 ```bash
