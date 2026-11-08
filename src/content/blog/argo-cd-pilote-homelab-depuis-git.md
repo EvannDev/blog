@@ -120,9 +120,9 @@ shared/        values et manifests des briques communes
 manifests/     manifests des usages
 ```
 
-Une Application pointe vers l'un de deux formats. Le premier est un chart Helm amont avec des values qui viennent du dépôt. Elle a alors plusieurs `spec.sources` : le chart, puis le dépôt lui-même déclaré avec `ref: values`, que `valueFiles` lit sous la forme `$values/shared/<composant>/values.yaml`. Argo CD, Cilium et le monitoring fonctionnent ainsi. D'autres Applications écrivent leurs values en ligne dans un `valuesObject`, comme l'exemple de la section précédente.
+Une Application pointe vers l'un de deux formats. Le premier est un chart Helm amont avec des values qui viennent du dépôt. Elle a alors plusieurs `spec.sources` : le chart, puis le dépôt lui-même déclaré avec `ref: values`, que `valueFiles` lit sous la forme `$values/shared/<composant>/values.yaml`. Cilium et le monitoring fonctionnent ainsi. D'autres Applications écrivent leurs values en ligne dans un `valuesObject`, comme l'exemple de la section précédente.
 
-Certains composants sont découpés en deux Applications qui lisent le même dossier : le chart d'un côté, ses ressources de l'autre. Cilium et son pool L2 en sont un exemple, cert-manager et ses émetteurs un autre. Comme le dossier contient aussi le fichier de values, l'Application qui lit les manifests l'exclut :
+Certains composants sont découpés en deux Applications qui lisent le même dossier : le chart d'un côté, ses ressources de l'autre. Cilium et son pool L2 en sont un exemple. Comme le dossier contient aussi le fichier de values, l'Application qui lit les manifests l'exclut :
 
 ```yaml
 # extrait d'une Application de manifests d'apps/shared/
@@ -172,7 +172,7 @@ Une clé inconnue dans un fichier de values est ignorée sans erreur. Pour véri
 
 ## Renovate ouvre les PR de mise à jour
 
-Renovate lit `renovate.json5` et ouvre des PR pour les versions de charts, dans les Applications d'`apps/` (charts Helm HTTP et OCI, sources git taguées), et pour les images de conteneur des manifests. Il passe le samedi matin. Les montées mineures, patch et digest sont fusionnées automatiquement trois jours après la sortie de la release, et les montées majeures attendent ma validation à la main. Cilium est un cas à part : une mise à jour redémarre le réseau de tous les nœuds, donc seuls les patchs sont fusionnés automatiquement.
+Renovate lit `renovate.json5` et ouvre des PR pour les versions de charts, dans les Applications d'`apps/` (charts Helm HTTP et OCI, sources git taguées), et pour les images de conteneur des manifests. La règle prévue est un passage le samedi matin, avec des montées mineures, patch et digest fusionnées automatiquement quand la release a au moins trois jours. Les montées majeures attendent ma validation à la main. L'image du blog est exemptée du créneau et du délai : c'est mon propre code, déjà relu dans la PR du blog. Cilium est un cas à part : une mise à jour redémarre le réseau de tous les nœuds, donc seuls les patchs sont fusionnés automatiquement.
 
 ```json5
 // renovate.json5 (extrait)
@@ -196,13 +196,13 @@ packageRules: [
 ],
 ```
 
-agentgateway et ses CRD sont groupés dans une même PR, parce qu'ils doivent changer de version ensemble. Renovate ne suit pas les tags d'image écrits dans un `valuesObject` en ligne. Talos, Kubernetes et les composants d'accès externe sont mis à jour à la main.
+agentgateway et ses CRD sont groupés dans une même PR, parce qu'ils doivent changer de version ensemble. Renovate ne suit que ce que ses gestionnaires reconnaissent : une version écrite dans un format qu'aucun d'eux ne lit n'est pas détectée. Talos, Kubernetes et les accès externes sont mis à jour à la main.
 
 ## Ce qui marche, ce qui est pénible
 
 Ajouter une application tient en deux gestes : un dossier de manifests, et un fichier d'Application dans `apps/workloads/`. La racine fait le reste.
 
-Les CRD m'ont demandé un compromis. Les Applications qui ne portent que des CRD (Gateway API, agentgateway, kagent) ont `prune: false`, et le commentaire du fichier de Gateway API dit « ne jamais supprimer des CRD automatiquement ». Du côté de cert-manager, c'est `crds.keep: true`. Supprimer une CRD supprime tous les objets qui en dépendent, donc je préfère le faire moi-même. En contrepartie, ce qui disparaît du dépôt reste dans le cluster tant que je ne passe pas derrière. Ces Applications utilisent aussi `ServerSideApply`, parce que les CRD de Gateway API sont trop grosses pour l'annotation `last-applied`.
+Les CRD m'ont demandé un compromis. Les Applications qui ne portent que des CRD (Gateway API, agentgateway, kagent) ont `prune: false`, et le commentaire du fichier de Gateway API dit « ne jamais supprimer des CRD automatiquement ». Du côté de cert-manager, c'est `crds.keep: true`. Supprimer une CRD supprime tous les objets qui en dépendent, donc j'ai préféré le faire moi-même. En contrepartie, une CRD retirée du dépôt resterait dans le cluster tant que je ne la supprimerais pas à la main. Ces Applications utilisent aussi `ServerSideApply`, parce que les CRD de Gateway API sont trop grosses pour l'annotation `last-applied`.
 
 Argo CD a aussi besoin de réglages quand un autre contrôleur modifie les ressources qu'il gère. Les Applications du monitoring et d'External Secrets déclarent un `ignoreDifferences` sur le `caBundle` des webhooks, injecté par cert-manager pour l'une et par un contrôleur d'External Secrets pour l'autre. Sans lui, Argo CD y verrait un écart permanent.
 
