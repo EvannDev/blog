@@ -12,6 +12,8 @@ Le dashboard Grafana que j'avais déjà installé montrait des coupures à inter
 
 ## Le point de départ
 
+Il n'y avait aucune infrastructure avant le 4 novembre 2026 : j'ai commencé à installer le homelab ce jour-là.
+
 Le cluster tient sur trois Raspberry Pi 4B arm64 de 8 Go de RAM chacun : un control plane, qui accepte aussi du workload, et deux workers. Il n'y a qu'un seul control plane, donc pas de HA pour etcd. C'est un cluster de test : si tout casse, je le reconstruis depuis le dépôt `platform`. L'OS est Talos Linux v1.14.5, avec Kubernetes v1.37.1.
 
 J'ai choisi Talos pour sa légèreté. Sur des Raspberry Pi aux ressources limitées, je ne voulais pas d'un OS chargé de fonctionnalités qui ne me servent à rien. Il y a aussi la praticité : tout est dans des fichiers de configuration, ce qui colle avec le côté GitOps du reste du cluster.
@@ -35,7 +37,7 @@ installer:
   image: factory.talos.dev/metal-installer/<schematic-id>:v1.14.5
 ```
 
-Au départ, j'avais une seule image, avec Newt, pour les trois nœuds. Les premiers patches datent du 4 novembre 2026 ; la séparation par rôle n'est arrivée que le 5 novembre.
+Au départ, j'avais une seule image, avec Newt, pour les trois nœuds. J'ai commencé l'installation le 4 novembre 2026 ; la séparation par rôle n'est arrivée que le 5 novembre.
 
 ## Faire booter les Raspberry Pi
 
@@ -71,9 +73,9 @@ Ensuite, les nœuds restent `NotReady` tant qu'il n'y a pas de CNI. C'est normal
 
 ## Des workers qui redémarrent toutes les 71 minutes
 
-Les workers avaient reçu l'image avec l'extension Newt, alors que la config de Newt n'est appliquée qu'au control plane. Une extension Newt sans `ExtensionServiceConfig` ne démarre jamais. Talos reste alors au stage `booting` et redémarre le nœud quand le `BootTimeout` expire (70 minutes). D'où les coupures régulières vues dans Grafana. Le mécanisme exact du blocage n'est pas expliqué.
+Les workers avaient reçu l'image avec l'extension Newt, alors que la config de Newt n'est appliquée qu'au control plane. Une extension Newt sans `ExtensionServiceConfig` ne démarre jamais. Talos reste alors au stage `booting` et redémarre le nœud quand le `BootTimeout` expire (70 minutes). D'où les coupures régulières vues dans Grafana. Je ne sais pas expliquer le mécanisme exact du blocage.
 
-Le 5 novembre 2026 (commit de 23 h 48 UTC), j'ai fabriqué un deuxième schematic : le même overlay Raspberry Pi, sans Newt. Les workers installent maintenant celui-là :
+Les coupures ont commencé dès cette première installation du 4 novembre, parce que les bonnes configs n'étaient pas encore en place. Elles ont duré jusqu'à la correction du 5 novembre 2026 : j'ai fabriqué un deuxième schematic, avec le même overlay Raspberry Pi mais sans Newt. Les workers installent maintenant celui-là :
 
 ```yaml
 # talos/installer-worker.yaml
@@ -89,9 +91,9 @@ Newt n'est plus que sur le control plane, qui reçoit aussi sa configuration.
 
 ## Les patches de configuration
 
-Tout est dans `talos/`. Quatre fichiers viennent de commits du 4 novembre 2026, avant l'incident : `patch.yaml` et `newt-delete.yaml` du commit initial, `controlplane-schedulable.yaml` et `worker-local-path.yaml` de deux commits suivants.
+Tout est dans `talos/`. `patch.yaml` et `newt-delete.yaml` viennent du commit initial du 4 novembre 2026, `controlplane-schedulable.yaml` et `worker-local-path.yaml` des deux commits suivants.
 
-Le commit initial (20 h 16 UTC) contient `patch.yaml` :
+Le commit initial contient `patch.yaml` :
 
 ```yaml
 # talos/patch.yaml
@@ -104,9 +106,9 @@ kind: KubeProxyConfig
 enabled: false
 ```
 
-Le premier document supprime Flannel, le CNI par défaut. Le second désactive kube-proxy. Je voulais installer Cilium à la place : il gère le réseau des pods et remplace aussi kube-proxy (`kubeProxyReplacement: true` dans ses values, Cilium 1.20.4). Je l'installe avec Helm juste après le `bootstrap`, et les nœuds passent alors à `Ready`.
+Le premier document supprime Flannel, le CNI par défaut. Le second désactive kube-proxy. Je voulais installer Cilium à la place : il gère le réseau des pods et remplace aussi kube-proxy (`kubeProxyReplacement: true` dans ses values, Cilium 1.20.4). Sans CNI, aucun pod ne démarre et les nœuds restent `NotReady`. J'installe Cilium avec Helm juste après le `bootstrap` : il pose le CNI, les pods démarrent et les nœuds passent `Ready`.
 
-À 21 h 20 UTC, `controlplane-schedulable.yaml` retire la taint `NoSchedule` du control plane, ce qui lui permet d'accueillir du workload :
+Le commit suivant ajoute `controlplane-schedulable.yaml`, qui retire la taint `NoSchedule` du control plane et lui permet d'accueillir du workload :
 
 ```yaml
 # talos/controlplane-schedulable.yaml
@@ -117,7 +119,7 @@ taints:
     $patch: delete
 ```
 
-À 23 h 44 UTC, `worker-local-path.yaml` ajoute un volume pour local-path-provisioner :
+Le dernier commit du 4 novembre ajoute `worker-local-path.yaml`, un volume pour local-path-provisioner :
 
 ```yaml
 # talos/worker-local-path.yaml
@@ -131,7 +133,7 @@ C'est un volume utilisateur de type `directory` sur la partition EPHEMERAL exist
 
 ## Les pièges de l'upgrade et des patches
 
-Pour mettre Talos à jour, il faut toujours passer `--image` à `talosctl upgrade`, avec l'image du rôle (celles de `talos/installer-*.yaml`). L'image par défaut de la commande est générique, sans l'overlay Raspberry Pi ni Newt. Renovate ne suit ni Talos ni Kubernetes (le dossier `talos/`), ni l'extension Newt : ces versions se mettent à jour à la main.
+Pour mettre Talos à jour, il faut toujours passer `--image` à `talosctl upgrade`, avec l'image du rôle (celles de `talos/installer-*.yaml`). L'image par défaut de la commande est générique, sans l'overlay Raspberry Pi ni Newt. Renovate ne suit ni Talos ni Kubernetes (le dossier `talos/`), ni l'extension Newt : je mets ces versions à jour à la main.
 
 Autre piège : les patches **ajoutent** aux listes au lieu de les remplacer. L'exemple noté dans le README : l'`environment` de Newt. Je vérifie donc toujours avec `--dry-run` avant d'appliquer :
 
@@ -140,7 +142,7 @@ talosctl patch mc -n <ip> --patch @talos/<patch>.yaml --dry-run
 talosctl patch mc -n <ip> --patch @talos/<patch>.yaml
 ```
 
-Pour changer la config de Newt, je la supprime puis je la réapplique. Le fichier de suppression, `newt-delete.yaml`, date lui aussi du commit initial :
+Pour changer la config de Newt, je la supprime puis je la réapplique. Le fichier de suppression est `newt-delete.yaml` :
 
 ```yaml
 # talos/newt-delete.yaml
