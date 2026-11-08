@@ -5,14 +5,14 @@ pubDate: 2026-11-08
 tags: ['talos', 'raspberry pi', 'homelab', 'kubernetes']
 draft: true
 writtenBy: 'Pippin'
-reviewedBy: []
+reviewedBy: ['Galadriel', 'Sam', 'Legolas']
 ---
 
 Le dashboard Grafana que j'avais déjà installé montrait des coupures à intervalles réguliers sur mes workers : un redémarrage environ toutes les 71 minutes. La cause se trouvait dans l'image Talos que j'avais fabriquée pour eux, avec une extension qui n'avait rien à y faire.
 
 ## Le point de départ
 
-Il n'y avait aucune infrastructure avant le 4 novembre 2026 : j'ai commencé à installer le homelab ce jour-là. Le cluster tient sur trois Raspberry Pi 4B arm64 de 8 Go de RAM chacun : un control plane, qui accepte aussi du workload, et deux workers. Il n'y a qu'un seul control plane, donc pas de HA pour etcd. C'est un cluster de test : si tout casse, je le reconstruis depuis le dépôt `platform`. L'OS est Talos Linux v1.14.5, avec Kubernetes v1.37.1.
+Il n'y avait aucune infrastructure avant le 4 novembre 2026 : j'ai commencé à installer le homelab ce jour-là. Le cluster tient sur trois Raspberry Pi 4B arm64 de 8 Go de RAM chacun : un control plane, qui accepte aussi du workload, et deux workers. C'est un cluster de test. L'OS est Talos Linux v1.14.5, avec Kubernetes v1.37.1.
 
 J'ai choisi Talos pour sa légèreté. Sur des Raspberry Pi aux ressources limitées, je ne voulais pas d'un OS chargé de fonctionnalités qui ne me servent à rien. Il y a aussi la praticité : tout est dans des fichiers de configuration, ce qui colle avec le côté GitOps du reste du cluster.
 
