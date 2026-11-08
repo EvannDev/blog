@@ -3,7 +3,7 @@ title: "Talos sur trois Raspberry Pi : une image par rôle, et ce que l'extensio
 description: "Trois Raspberry Pi sous Talos Linux : fabriquer l'image avec Image Factory, la flasher à la main, et corriger des workers qui redémarraient à intervalle régulier à cause de l'extension Newt."
 pubDate: 2026-11-08
 tags: ['talos', 'raspberry pi', 'homelab', 'kubernetes']
-draft: true
+draft: false
 writtenBy: 'Pippin'
 reviewedBy: ['Galadriel', 'Sam', 'Legolas']
 ---
